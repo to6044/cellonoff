@@ -1,0 +1,36 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Test rrcp02 with json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/rrcp_02_run_kiss.py",
+      "args": ["${workspaceFolder}/rrcp_02_test.json"],
+      "cwd": "${workspaceFolder}/KISS",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+    {
+      "name": "TEST: kiss.py with GLOBECOM hexgrid",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/kiss.py",
+      "args": ["${workspaceFolder}/_test/data/input/kiss/test_kiss.json"],
+      "cwd": "${workspaceFolder}/KISS",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}
