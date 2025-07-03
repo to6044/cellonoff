@@ -1,0 +1,174 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "Debug: run_kiss.py with test_kiss_GLOBECOM_hexgrid.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "_test/data/input/kiss/test_kiss_plot_GLOBECOM_hexgrid.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "Debug: run_kiss.py with test_kiss.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "_test/data/input/kiss/test_kiss.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "Debug rrcp_02_run_kiss.py with reduce_random_cell_power_02.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/rrcp_02_run_kiss.py",
+      "args": [
+        "-c",
+        "data/input/configs/reduce_random_cell_power/rrcp02/reduce_random_cell_power_02.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "Python: Profile kiss.py",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "args": [
+        "${workspaceFolder}/KISS/kiss.py"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "cProfile: kiss_profiled.py",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "args": [
+        "${workspaceFolder}/KISS/kiss_profiled.py",
+        "-c",
+        "_test/data/input/reduce_centre_cell_power/test_reduce_centre_cell_power_00.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "Debug data_analysis.py with rrcp01_s100_p43dBm.fea",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/data_analysis.py",
+      "args": [
+        "--data_file_path",
+        "data/output/kiss/reduce_random_cell_power/rrcp01/rrcp01_s100_p43dBm.fea"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "run_kiss_sp.py with args",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss_sp.py",
+      "args": [
+        "-c",
+        "_test/data/input/reduce_centre_cell_power/test_reduce_centre_cell_power_00.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "DEBUG: kiss.py with test args",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/kiss.py",
+      "args": [
+        "-c",
+        "_test/data/input/kiss/test_kiss.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "TEST: run_kiss.py with test_reduce_centre_cell_power",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "_test/data/input/reduce_centre_cell_power/test_reduce_centre_cell_power_00.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "SWITCH_2_CELLS_OFF: run_kiss.py with switch_2_cells_off.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "data/input/switch_n_cells_off/switch_2_cells_off.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "REDUCE_CENTRE_CELL_POWER: run_kiss.py with test_02_reduce_centre_cell_power.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "data/input/reduce_centre_cell_power/test_02_reduce_centre_cell_power.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "RCCP_04_RSRP_0_WATTS: run_kiss.py with 04_reduce_centre_cell_power_best_rsrp_to_0_watts.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "data/input/reduce_centre_cell_power/04_reduce_centre_cell_power_best_rsrp_to_0_watts.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    },
+    {
+      "name": "RCCP_05_SINR_0_WATTS: run_kiss.py with 05_reduce_centre_cell_power_best_sinr_to_0_watts.json",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/KISS/run_kiss.py",
+      "args": [
+        "-c",
+        "data/input/reduce_centre_cell_power/05_reduce_centre_cell_power_best_sinr_to_0_watts.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/KISS"
+    }
+]
+}
