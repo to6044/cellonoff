@@ -100,6 +100,8 @@ class EXP3CellOnOff(Scenario):
         total_throughput = 0.0
         total_power = 0.0
         
+        print(f"Debug: Calculating efficiency at t={self.sim.env.now}")
+
         for cell_idx in self.k_cells:
             cell = self.sim.cells[cell_idx]
             
@@ -107,13 +109,31 @@ class EXP3CellOnOff(Scenario):
             cell_throughput = cell.get_cell_throughput()  # Mbps
             total_throughput += cell_throughput
             
-            # Get cell power consumption
-            if cell_idx in self.cell_energy_models:
-                cell_power = self.cell_energy_models[cell_idx].get_cell_power_watts(self.sim.env.now) / 1000.0  # kW
-            else:
-                # Fallback if energy model not available
-                cell_power = 0.2 if cell.get_power_dBm() <= -100 else 2.0  # kW
-            total_power += cell_power
+            # Get cell power consumption - 수정된 부분
+            try:
+                power_dBm = cell.get_power_dBm()
+                
+                # Cell이 OFF 상태인지 확인
+                if power_dBm <= -100 or np.isinf(power_dBm):
+                    cell_power = 0.1  # 최소 대기전력 (kW)
+                else:
+                    if cell_idx in self.cell_energy_models:
+                        cell_power_watts = self.cell_energy_models[cell_idx].get_cell_power_watts(self.sim.env.now)
+                        # nan 체크
+                        if np.isnan(cell_power_watts) or np.isinf(cell_power_watts):
+                            cell_power = 2.0  # 기본값 (kW)
+                        else:
+                            cell_power = cell_power_watts / 1000.0  # kW로 변환
+                    else:
+                        cell_power = 2.0  # 기본 ON 상태 전력 (kW)
+                
+                total_power += cell_power
+                
+            except Exception as e:
+                print(f"Error calculating power for cell {cell_idx}: {e}")
+                # 기본값 사용
+                cell_power = 0.1 if cell.get_power_dBm() <= -100 else 2.0
+                total_power += cell_power
         
         # Calculate efficiency (Mbps/kW)
         if total_power > 0:
@@ -121,8 +141,11 @@ class EXP3CellOnOff(Scenario):
         else:
             efficiency = 0.0
             
+        print(f"Efficiency: {efficiency:.2f} Mbps/kW, Throughput: {total_throughput:.2f} Mbps, Power: {total_power:.2f} kW")
+        
         return efficiency, total_throughput, total_power
-    
+
+
     def select_arm(self):
         """Select an arm using EXP3 algorithm or epsilon-greedy during warm-up."""
         if self.warm_up and self.episode < self.warm_up_episodes:
@@ -151,18 +174,46 @@ class EXP3CellOnOff(Scenario):
             print(f"t={self.sim.env.now:.2f}: Cell[{cell_idx}] turned OFF")
         
         self.cells_currently_off = cells_to_turn_off
-        
+            
     def update_weights(self, arm_idx, reward):
         """Update EXP3 weights based on reward."""
+        if len(self.arm_selections) == 0:
+            return
+        
+        # Reward normalization - 중요!
+        normalized_reward = reward / 100.0  # 또는 max_expected_efficiency로 나누기
+        
         # Estimated reward for the selected arm
-        estimated_reward = reward / self.probabilities[arm_idx]
+        estimated_reward = normalized_reward / self.probabilities[arm_idx]
+        
+        # Clip estimated reward to prevent overflow
+        estimated_reward = np.clip(estimated_reward, -50, 50)  # exp(±50) 정도가 안전한 범위
         
         # Update weight for selected arm
-        self.weights[arm_idx] *= np.exp(self.eta * estimated_reward)
+        weight_update = np.exp(self.eta * estimated_reward)
         
-        # Update probabilities
+        # Overflow 체크
+        if np.isinf(weight_update) or np.isnan(weight_update):
+            print(f"Warning: Weight update overflow. estimated_reward={estimated_reward}, using fallback")
+            weight_update = np.exp(np.clip(self.eta * estimated_reward, -10, 10))
+        
+        self.weights[arm_idx] *= weight_update
+        
+        # Update probabilities with numerical stability
         weight_sum = np.sum(self.weights)
+        
+        if weight_sum == 0 or np.isnan(weight_sum) or np.isinf(weight_sum):
+            print("Warning: Weight sum is invalid, resetting weights")
+            self.weights = np.ones(self.n_arms)
+            weight_sum = self.n_arms
+        
         self.probabilities = self.weights / weight_sum
+        
+        # Final check for probabilities
+        if np.any(np.isnan(self.probabilities)) or np.any(np.isinf(self.probabilities)):
+            print("Warning: Probabilities contain NaN/Inf, resetting to uniform")
+            self.probabilities = np.ones(self.n_arms) / self.n_arms
+            self.weights = np.ones(self.n_arms)
         
     def save_results(self):
         """Save learning results to files."""
