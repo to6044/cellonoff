@@ -35,7 +35,7 @@
     },
     
     "exp3_k_cells": null,
-    "exp3_n_cells_off": 5,
+    "exp3_n_cells_off": 2,
     "exp3_eta": 0.01,
     "exp3_warm_up": true,
     "exp3_warm_up_episodes": 50,

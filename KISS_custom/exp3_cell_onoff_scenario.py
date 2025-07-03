@@ -217,17 +217,32 @@ class EXP3CellOnOff(Scenario):
         
     def save_results(self):
         """Save learning results to files."""
+        import json
+        import numpy as np
+        
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif isinstance(obj, (np.int64, np.int32, np.int_)):
+                    return int(obj)
+                elif isinstance(obj, (np.float64, np.float32, np.float_)):
+                    return float(obj)
+                elif isinstance(obj, tuple):
+                    return list(obj)
+                return super().default(obj)
+        
         # Save weights history
         weights_file = os.path.join(self.output_dir, "exp3_weights_history.json")
         with open(weights_file, 'w') as f:
             json.dump({
-                'weights_history': [w.tolist() for w in self.weights_history],
-                'probabilities_history': [p.tolist() for p in self.probabilities_history],
+                'weights_history': self.weights_history,
+                'probabilities_history': self.probabilities_history,
                 'arm_selections': self.arm_selections,
                 'rewards': self.rewards,
                 'efficiency_history': self.efficiency_history,
-                'arms': [list(arm) for arm in self.arms]
-            }, f, indent=2)
+                'arms': self.arms
+            }, f, indent=2, cls=NumpyEncoder)
         
         # Plot results
         self.plot_results()
