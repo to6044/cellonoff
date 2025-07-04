@@ -94,46 +94,40 @@ class EXP3CellOnOff(Scenario):
     def setup_energy_models(self, energy_models_dict):
         """Set reference to energy models dictionary."""
         self.cell_energy_models = energy_models_dict
-        
+            
     def calculate_network_efficiency(self):
         """Calculate current network efficiency (throughput/power)."""
         total_throughput = 0.0
         total_power = 0.0
         
         print(f"Debug: Calculating efficiency at t={self.sim.env.now}")
-
+        
         for cell_idx in self.k_cells:
             cell = self.sim.cells[cell_idx]
-            
-            # Get cell throughput
-            cell_throughput = cell.get_cell_throughput()  # Mbps
+            cell_throughput = cell.get_cell_throughput()
             total_throughput += cell_throughput
             
-            # Get cell power consumption - 수정된 부분
-            try:
-                power_dBm = cell.get_power_dBm()
-                
-                # Cell이 OFF 상태인지 확인
-                if power_dBm <= -100 or np.isinf(power_dBm):
-                    cell_power = 0.1  # 최소 대기전력 (kW)
-                else:
-                    if cell_idx in self.cell_energy_models:
-                        cell_power_watts = self.cell_energy_models[cell_idx].get_cell_power_watts(self.sim.env.now)
-                        # nan 체크
-                        if np.isnan(cell_power_watts) or np.isinf(cell_power_watts):
-                            cell_power = 2.0  # 기본값 (kW)
-                        else:
-                            cell_power = cell_power_watts / 1000.0  # kW로 변환
-                    else:
-                        cell_power = 2.0  # 기본 ON 상태 전력 (kW)
-                
-                total_power += cell_power
-                
-            except Exception as e:
-                print(f"Error calculating power for cell {cell_idx}: {e}")
-                # 기본값 사용
-                cell_power = 0.1 if cell.get_power_dBm() <= -100 else 2.0
-                total_power += cell_power
+            # 디버깅: Cell 상태 확인
+            power_dBm = cell.get_power_dBm()
+            cell_status = "OFF" if power_dBm <= -100 else "ON"
+            
+            # Get cell power consumption
+            if cell_idx in self.cell_energy_models:
+                # CellEnergyModel 사용
+                cell_power_watts = self.cell_energy_models[cell_idx].get_cell_power_watts(self.sim.env.now)
+                cell_power = cell_power_watts / 1000.0  # kW
+                power_source = "EnergyModel"
+            else:
+                # Fallback 사용
+                cell_power = 0.2 if power_dBm <= -100 else 2.0  # kW
+                power_source = "Fallback"
+            
+            total_power += cell_power
+            
+            # 처음 5개 Cell의 상태만 출력
+            if cell_idx < 5:
+                print(f"  Cell[{cell_idx}]: {cell_status}, power_dBm={power_dBm:.1f}, "
+                    f"power={cell_power:.3f}kW ({power_source}), throughput={cell_throughput:.1f}Mbps")
         
         # Calculate efficiency (Mbps/kW)
         if total_power > 0:
@@ -141,6 +135,9 @@ class EXP3CellOnOff(Scenario):
         else:
             efficiency = 0.0
             
+        on_cells = len([c for c in self.sim.cells if c.get_power_dBm() > -100])
+        off_cells = 19 - on_cells
+        print(f"  Summary: {on_cells} ON, {off_cells} OFF")
         print(f"Efficiency: {efficiency:.2f} Mbps/kW, Throughput: {total_throughput:.2f} Mbps, Power: {total_power:.2f} kW")
         
         return efficiency, total_throughput, total_power
@@ -166,11 +163,17 @@ class EXP3CellOnOff(Scenario):
         # Turn on cells that should be on
         for cell_idx in self.cells_currently_off - cells_to_turn_off:
             self.sim.cells[cell_idx].set_power_dBm(43.0)  # Default power
+            # Energy model 업데이트
+            if cell_idx in self.cell_energy_models:
+                self.cell_energy_models[cell_idx].update_cell_power_watts()
             print(f"t={self.sim.env.now:.2f}: Cell[{cell_idx}] turned ON")
         
         # Turn off cells that should be off
         for cell_idx in cells_to_turn_off - self.cells_currently_off:
             self.sim.cells[cell_idx].set_power_dBm(-np.inf)
+            # Energy model 강제 업데이트
+            if cell_idx in self.cell_energy_models:
+                self.cell_energy_models[cell_idx].update_cell_power_watts()
             print(f"t={self.sim.env.now:.2f}: Cell[{cell_idx}] turned OFF")
         
         self.cells_currently_off = cells_to_turn_off

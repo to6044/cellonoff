@@ -467,6 +467,14 @@ class CellEnergyModel:
         self.cell_power_watts = self.params.sectors * self.params.antennas * (
             self.p_static_watts + self. p_dynamic_watts)
 
+        print(f"Cell[{self.cell.i}] Energy Model Debug:")
+        print(f"  p_static_watts: {self.p_static_watts}")
+        print(f"  p_dynamic_watts: {self.p_dynamic_watts}")
+        print(f"  sectors: {self.params.sectors}, antennas: {self.params.antennas}")
+        print(f"  total_per_trx: {self.p_static_watts + self.p_dynamic_watts}")
+        print(f"  cell_power_watts: {self.cell_power_watts}")
+        print(f"  cell_power_kW: {self.cell_power_watts/1000}")
+
         # END of INIT
 
     def from_dBm_to_watts(self, x):
@@ -485,8 +493,6 @@ class CellEnergyModel:
         """
         Returns the power consumption (in kW), per sector / antenna.
         """
-
-
         cell_p_out_dBm = self.cell.get_power_dBm()
         cell_p_out_watts = self.from_dBm_to_watts(cell_p_out_dBm)
 
@@ -510,7 +516,14 @@ class CellEnergyModel:
         # Calculate the Power Amplifier power consumption in watts
         if trx_p_out_watts == 0.0:
             p_pa_watts = 0.0
-        p_pa_watts = trx_p_out_watts / (self.params.eta_pa * (1 - self.params.loss_feed))
+        else:  # 이 else 문이 누락되어 있었음!
+            # 추가 안전장치: eta_pa가 0이거나 분모가 0인 경우 방지
+            denominator = self.params.eta_pa * (1 - self.params.loss_feed)
+            if denominator == 0.0:
+                print(f'Warning: Cell[{self.cell.i}] PA efficiency calculation has zero denominator. Setting PA power to 0.', file=stderr)
+                p_pa_watts = 0.0
+            else:
+                p_pa_watts = trx_p_out_watts / denominator
 
         # Calculate the value of `P_ue_plus_C_watts` given the number of UEs multiplex by the base station
         if self.cell.get_nattached() == 0:
@@ -527,8 +540,12 @@ class CellEnergyModel:
             (1 - self.params.loss_mains) * (1 - self.params.loss_cool)
 
         # Get the power output per TRX chain (watts)
-        p_out_TRX_chain_watts = p_consumption_watts / p_losses_ratio
-
+        # 추가 안전장치: losses_ratio가 0인 경우 방지
+        if p_losses_ratio == 0.0:
+            print(f'Warning: Cell[{self.cell.i}] losses ratio is zero. Setting TRX chain power to consumption power.', file=stderr)
+            p_out_TRX_chain_watts = p_consumption_watts
+        else:
+            p_out_TRX_chain_watts = p_consumption_watts / p_losses_ratio
 
         # Update the instance stored value
         self.p_dynamic_watts = p_out_TRX_chain_watts
