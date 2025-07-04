@@ -14,7 +14,7 @@ KISS/__pycache__
 *.fea
 *.pstats
 EnergyModels.code-workspace
-_/data/output/
+KISS_custom/_/data/output/
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,python,visualstudiocode
